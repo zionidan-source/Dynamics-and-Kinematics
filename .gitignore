@@ -63,3 +63,10 @@ Thumbs.db
 debug_screenshots/
 scratch/
 notes_personal.md
+
+# Video outputs (uploaded to Google Drive instead)
+*.mp4
+*.webm
+
+# Test trajectory runs (only final assets committed)
+docs/report_assets/test_*/
