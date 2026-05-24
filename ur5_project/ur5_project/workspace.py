@@ -17,9 +17,10 @@ Output: 4 figures
   - Side view (Y-Z projection)
 
 Usage:
-  python3 workspace.py                  # default density (~125k points)
-  python3 workspace.py --density coarse # fast but rough (~10k points)
-  python3 workspace.py --density fine   # slow but smooth (~1M points)
+  ros2 run ur5_project workspace                  # default density (~110k points)
+  ros2 run ur5_project workspace --density coarse # fast but rough (~14k points)
+  ros2 run ur5_project workspace --density fine   # slow but smooth (~730k points)
+  ros2 run ur5_project workspace --density ultra  # report-grade (~3.4M points)
 
 Author: Daniel
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
@@ -31,7 +32,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  needed for 3D projection
 
-from kinematics import UR5_DH_PARAMS, T_BASE_CORRECTION
+from pathlib import Path
+
+from ur5_project.kinematics import UR5_DH_PARAMS, T_BASE_CORRECTION
+
+# This file lives at <REPO>/ur5_project/ur5_project/workspace.py
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SAVE_DIR = str(REPO_ROOT / "docs" / "report_assets")
 
 
 # ============================================================================
@@ -279,9 +286,14 @@ def main():
     parser.add_argument('--density', choices=list(DENSITY_PRESETS.keys()),
                         default='medium',
                         help='Sampling density (default: medium)')
-    parser.add_argument('--save', type=str, default=None,
-                        help='Directory to save figures (e.g., ../report_assets)')
+    parser.add_argument('--save', type=str, default=DEFAULT_SAVE_DIR,
+                        help=f'Directory to save figures '
+                             f'(default: {DEFAULT_SAVE_DIR})')
+    parser.add_argument('--no-save', action='store_true',
+                        help='Display figures only, do not save to disk')
     args = parser.parse_args()
+
+    save_dir = None if args.no_save else args.save
 
     preset = DENSITY_PRESETS[args.density]
     print(f"\nUR5 WORKSPACE COMPUTATION")
@@ -292,7 +304,7 @@ def main():
 
     positions = compute_workspace(**preset)
     print_workspace_stats(positions)
-    plot_workspace(positions, save_dir=args.save)
+    plot_workspace(positions, save_dir=save_dir)
 
 
 if __name__ == '__main__':

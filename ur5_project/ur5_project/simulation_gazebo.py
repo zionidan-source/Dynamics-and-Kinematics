@@ -19,7 +19,8 @@ Workflow
   ./record_gazebo.sh
 
   # Terminal 3: send the trajectory
-  python3 simulation_gazebo.py
+  ros2 run ur5_project simulation_gazebo
+  ros2 run ur5_project simulation_gazebo --start X Y Z R P Y --end X Y Z R P Y
 
 The arm will:
   1. First move smoothly to the start pose of the planned trajectory
@@ -36,6 +37,7 @@ Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 
 import time
 import sys
+import argparse
 import numpy as np
 
 import rclpy
@@ -43,8 +45,8 @@ from rclpy.node import Node
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration as DurationMsg
 
-from kinematics import forward_kinematics, rotation_to_rpy, JOINT_NAMES
-from trajectory import plan_trajectory
+from ur5_project.kinematics import forward_kinematics, rotation_to_rpy, JOINT_NAMES
+from ur5_project.trajectory import plan_trajectory
 
 
 # ============================================================================
@@ -138,14 +140,44 @@ class GazeboTrajectoryRunner(Node):
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Run UR5 motion in Gazebo between two Cartesian poses."
+    )
+    parser.add_argument('--start', type=float, nargs=6, default=None,
+                        metavar=('X', 'Y', 'Z', 'R', 'P', 'YAW'),
+                        help='Start pose: X Y Z (meters) R P YAW (degrees). '
+                             'If omitted, uses Q_START_REF.')
+    parser.add_argument('--end', type=float, nargs=6, default=None,
+                        metavar=('X', 'Y', 'Z', 'R', 'P', 'YAW'),
+                        help='End pose: X Y Z (meters) R P YAW (degrees). '
+                             'If omitted, uses Q_END_REF.')
+    args = parser.parse_args()
+
     rclpy.init()
     node = GazeboTrajectoryRunner()
 
-    # --- Plan the trajectory using the same routine as simulation.py ---
-    T0 = forward_kinematics(Q_START_REF)
-    T1 = forward_kinematics(Q_END_REF)
-    start_pose = np.concatenate([T0[:3, 3], rotation_to_rpy(T0[:3, :3])])
-    end_pose   = np.concatenate([T1[:3, 3], rotation_to_rpy(T1[:3, :3])])
+    # --- Determine start/end poses ---
+    if args.start is None:
+        T0 = forward_kinematics(Q_START_REF)
+        start_pose = np.concatenate([T0[:3, 3], rotation_to_rpy(T0[:3, :3])])
+        q_seed = Q_START_REF
+    else:
+        start_pose = np.array([
+            args.start[0], args.start[1], args.start[2],
+            np.deg2rad(args.start[3]), np.deg2rad(args.start[4]),
+            np.deg2rad(args.start[5])
+        ])
+        q_seed = None  # plan_trajectory will pick a well-behaved seed
+
+    if args.end is None:
+        T1 = forward_kinematics(Q_END_REF)
+        end_pose = np.concatenate([T1[:3, 3], rotation_to_rpy(T1[:3, :3])])
+    else:
+        end_pose = np.array([
+            args.end[0], args.end[1], args.end[2],
+            np.deg2rad(args.end[3]), np.deg2rad(args.end[4]),
+            np.deg2rad(args.end[5])
+        ])
 
     print("=" * 72)
     print(" UR5 LIVE GAZEBO SIMULATION")
@@ -158,7 +190,7 @@ def main():
 
     traj = plan_trajectory(start_pose, end_pose,
                            v_max=V_MAX, a_max=A_MAX, dt=DT,
-                           initial_joints=Q_START_REF)
+                           initial_joints=q_seed)
     T_motion = traj['t'][-1]
     print(f"  Planned: {len(traj['t'])} waypoints, {T_motion:.3f} s motion.")
 

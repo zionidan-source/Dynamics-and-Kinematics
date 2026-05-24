@@ -32,8 +32,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from kinematics import forward_kinematics
-from inverse_kinematics import inverse_kinematics, pick_best_solution
+from pathlib import Path
+
+from ur5_project.kinematics import forward_kinematics
+from ur5_project.inverse_kinematics import inverse_kinematics, pick_best_solution
+
+# This file lives at <REPO>/ur5_project/ur5_project/trajectory.py
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SAVE_DIR = str(REPO_ROOT / "docs" / "report_assets")
 
 
 # ============================================================================
@@ -327,8 +333,8 @@ def main():
     parser.add_argument('--dt', type=float, default=0.01,
                         help='Time step (s), default 0.01')
     parser.add_argument('--save', type=str,
-                        default='../../docs/report_assets',
-                        help='Where to save the plots')
+                        default=DEFAULT_SAVE_DIR,
+                        help=f'Where to save the plots (default: {DEFAULT_SAVE_DIR})')
     parser.add_argument('--no_show', action='store_true',
                         help='Disable interactive plt.show()')
     args = parser.parse_args()

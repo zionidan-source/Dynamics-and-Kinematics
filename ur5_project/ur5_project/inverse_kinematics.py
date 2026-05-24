@@ -32,7 +32,7 @@ import numpy as np
 import cmath
 from math import cos, sin, atan2, acos, asin, sqrt, pi
 
-from kinematics import (
+from ur5_project.kinematics import (
     UR5_DH_PARAMS,
     T_BASE_CORRECTION,
     forward_kinematics,

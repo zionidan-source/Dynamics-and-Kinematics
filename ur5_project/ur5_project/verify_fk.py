@@ -16,7 +16,7 @@ Usage:
   ros2 launch ur_simulation_gz ur_sim_control.launch.py ur_type:=ur5
 
   # Terminal 2: run this script
-  python3 verify_fk.py
+  ros2 run ur5_project verify_fk
 """
 
 import sys
@@ -33,7 +33,7 @@ from tf2_ros import Buffer, TransformListener, LookupException, ExtrapolationExc
 
 # Add the parent directory so we can import kinematics
 sys.path.insert(0, '.')
-from kinematics import (
+from ur5_project.kinematics import (
     forward_kinematics,
     position_from_transform,
     rotation_from_transform,

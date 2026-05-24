@@ -9,7 +9,7 @@ input format required by assignment section 4.1.9.1.
 Workflow
 --------
 1. Edit START_POSE and END_POSE in the EDIT_THIS section below.
-2. Run:    python3 test_trajectory.py
+2. Run:    ros2 run ur5_project test_trajectory
 3. The script first validates that:
      a. Both endpoints are reachable (IK returns at least one solution).
      b. Neither endpoint is near a wrist-2 singularity (|sin θ_5| > threshold).
@@ -33,14 +33,20 @@ import time
 import argparse
 import numpy as np
 
-from kinematics import forward_kinematics
-from inverse_kinematics import inverse_kinematics
-from trajectory import pose_to_transform, plan_trajectory
-from simulation import (
+from ur5_project.kinematics import forward_kinematics
+from ur5_project.inverse_kinematics import inverse_kinematics
+from ur5_project.trajectory import pose_to_transform, plan_trajectory
+from pathlib import Path
+
+from ur5_project.simulation import (
     plot_stick_diagrams, plot_ee_pose, plot_joint_angles,
     plot_velocity_comparison, plot_torques, animate_motion,
     compute_velocities, compute_torques,
 )
+
+# This file lives at <REPO>/ur5_project/ur5_project/test_trajectory.py
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_REPORT_DIR = REPO_ROOT / "docs" / "report_assets"
 
 
 # ============================================================================
@@ -214,7 +220,7 @@ def main():
         tag = args.tag
     else:
         tag = time.strftime("%Y%m%d_%H%M%S")
-    out_dir = os.path.join("..", "..", "docs", "report_assets", f"test_{tag}")
+    out_dir = str(DEFAULT_REPORT_DIR / f"test_{tag}")
     os.makedirs(out_dir, exist_ok=True)
     print(f"\nOutputs will be written to: {out_dir}/")
 

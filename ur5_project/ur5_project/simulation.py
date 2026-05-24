@@ -33,9 +33,15 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, FFMpegWriter
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from kinematics import forward_kinematics, T_BASE_CORRECTION
-from jacobian import compute_jacobian, compute_statics
-from trajectory import plan_trajectory
+from pathlib import Path
+
+from ur5_project.kinematics import forward_kinematics, T_BASE_CORRECTION
+from ur5_project.jacobian import compute_jacobian, compute_statics
+from ur5_project.trajectory import plan_trajectory
+
+# This file lives at <REPO>/ur5_project/ur5_project/simulation.py
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_SAVE_DIR = str(REPO_ROOT / "docs" / "report_assets")
 
 
 # ============================================================================
@@ -421,8 +427,9 @@ def main():
     parser.add_argument('--dt', type=float, default=0.01,
                         help='Trajectory sampling time step (s)')
     parser.add_argument('--save', type=str,
-                        default='../../docs/report_assets',
-                        help='Output directory for plots and MP4')
+                        default=DEFAULT_SAVE_DIR,
+                        help=f'Output directory for plots and MP4 '
+                             f'(default: {DEFAULT_SAVE_DIR})')
     parser.add_argument('--fps', type=int, default=30,
                         help='MP4 frame rate (default 30)')
     parser.add_argument('--slowdown', type=float, default=3.0,

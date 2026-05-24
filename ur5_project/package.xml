@@ -2,37 +2,24 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>ur5_project</name>
-  <version>0.1.0</version>
+  <version>1.0.0</version>
   <description>
-    UR5 kinematics and dynamics simulation. Final project for course
-    362-1-4231 (Kinematics and Dynamics of Robots), Ben-Gurion University,
-    Spring 2026. Includes analytical forward and inverse kinematics,
-    workspace analysis, Jacobian, statics, and trajectory planning,
-    integrated with ROS2 Jazzy and Gazebo Harmonic.
+    Final project for the course "Kinematics and Dynamics of Robots" (362-1-4231)
+    at Ben-Gurion University of the Negev. Implements full UR5 simulation:
+    forward and inverse kinematics, workspace analysis, Jacobian, statics,
+    Cartesian trajectory planning with trapezoidal velocity profile, and
+    integration with Gazebo Harmonic via ROS2 Jazzy.
   </description>
-
-  <maintainer email="daniel@example.com">Daniel</maintainer>
+  <maintainer email="zionidan@post.bgu.ac.il">Daniel</maintainer>
+  <maintainer email="itaigroi@post.bgu.ac.il">Itai</maintainer>
   <license>MIT</license>
 
-  <buildtool_depend>ament_python</buildtool_depend>
-
   <depend>rclpy</depend>
-  <depend>sensor_msgs</depend>
-  <depend>trajectory_msgs</depend>
-  <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>trajectory_msgs</depend>
   <depend>builtin_interfaces</depend>
   <depend>tf2_ros</depend>
-  <depend>python3-numpy</depend>
-  <depend>python3-matplotlib</depend>
-
-  <exec_depend>ur_description</exec_depend>
-  <exec_depend>ur_simulation_gz</exec_depend>
-
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <depend>tf2_geometry_msgs</depend>
 
   <export>
     <build_type>ament_python</build_type>

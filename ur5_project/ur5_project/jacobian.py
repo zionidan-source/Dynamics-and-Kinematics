@@ -37,7 +37,7 @@ Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 
 import numpy as np
 
-from kinematics import forward_kinematics, T_BASE_CORRECTION
+from ur5_project.kinematics import forward_kinematics, T_BASE_CORRECTION
 
 
 # ============================================================================
