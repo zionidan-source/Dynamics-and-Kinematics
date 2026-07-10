@@ -44,6 +44,7 @@ The package is structured as three layers:
 | Node                  | Purpose                                            | Needs Gazebo? |
 |-----------------------|----------------------------------------------------|---------------|
 | `workspace`           | Compute and plot the reachable workspace           | No            |
+| `jacobian`            | Validate the analytical Jacobian & statics vs. numerical | No       |
 | `trajectory`          | Plan one trajectory and plot it (FK/joints/speed)  | No            |
 | `simulation`          | Full offline simulation with stick diagrams + MP4  | No            |
 | `test_trajectory`     | Validate a pair of start/end poses before running  | No            |
@@ -179,6 +180,17 @@ The node moves the arm to five test configurations, reads the actual `tool0`
 pose from tf2, and prints the position error of each against the analytical
 prediction. All errors should be effectively zero.
 
+### Validating the Jacobian and statics (Sections 5-6)
+
+```bash
+ros2 run ur5_project jacobian
+```
+
+This takes no flags. It compares the analytical 6×6 Jacobian against a
+finite-difference numerical Jacobian at several poses (worst error ~1e-8),
+prints the Jacobian at a representative pose, and reports the motor torques
+required to hold a 5 kg payload — with a hand-check of the shoulder-lift torque.
+
 ### Planning a trajectory (Section 8)
 
 ```bash
@@ -191,6 +203,7 @@ between the demo poses defined in the source file, and produces:
 - `trajectory_cartesian_path.png` — 3D Cartesian path
 - `trajectory_joint_angles.png` — six joint angles vs. time
 - `trajectory_speed_profile.png` — end-effector speed vs. time
+- `trajectory_acceleration.png` — joint angular acceleration and end-effector |a(t)| vs. time
 
 ### Offline simulation (Section 9)
 
@@ -206,6 +219,7 @@ produces:
 - `sim_joint_angles.png` — six joint angles vs. time
 - `sim_velocity_compare.png` — numerical vs. analytical |v(t)|
 - `sim_torques.png` — joint torques for a 3 kg payload
+- `sim_acceleration.png` — joint angular acceleration and end-effector |a(t)| vs. time
 - `sim_motion.mp4` — animated visualization
 
 Pass `--no_video` to skip the MP4 rendering during quick iterations.
@@ -327,11 +341,13 @@ docs/report_assets/
 ├── trajectory_cartesian_path.png    (from `trajectory`)
 ├── trajectory_joint_angles.png
 ├── trajectory_speed_profile.png
+├── trajectory_acceleration.png
 ├── sim_stick_diagrams.png      (from `simulation`)
 ├── sim_ee_pose.png
 ├── sim_joint_angles.png
 ├── sim_velocity_compare.png
 ├── sim_torques.png
+├── sim_acceleration.png
 ├── sim_motion.mp4
 └── test_<timestamp>/           (from `test_trajectory`, per-run subfolder)
     ├── sim_stick_diagrams.png

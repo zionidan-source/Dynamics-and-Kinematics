@@ -22,6 +22,7 @@ setup(
     entry_points={
         'console_scripts': [
             'workspace          = ur5_project.workspace:main',
+            'jacobian           = ur5_project.jacobian:main',
             'simulation         = ur5_project.simulation:main',
             'simulation_gazebo  = ur5_project.simulation_gazebo:main',
             'verify_fk          = ur5_project.verify_fk:main',
