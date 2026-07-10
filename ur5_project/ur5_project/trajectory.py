@@ -248,14 +248,71 @@ def plan_trajectory(start_pose, end_pose,
 
 
 # ============================================================================
+# Acceleration (joint-space angular + Cartesian magnitude)
+# ============================================================================
+def compute_acceleration(traj):
+    """
+    Compute the acceleration of the motion in both spaces, purely from the
+    time-sampled trajectory, using numerical central differences.
+
+    The trajectory dict returned by plan_trajectory() stores positions but
+    not their derivatives, so we differentiate twice:
+
+    Joint space: q_dot is the central-difference derivative of the joint
+                 trajectory; q_ddot is the central-difference derivative of
+                 q_dot -> joint angular acceleration in rad/s^2.
+    Work space:  the numerical end-effector velocity is the central-difference
+                 derivative of the Cartesian position; differentiating it once
+                 more gives the linear acceleration, reported as |a(t)|.
+
+    We deliberately differentiate the numerical velocity (rather than reading
+    the analytic trapezoidal profile) so the plot exposes the real
+    finite-difference noise, exactly as plot_velocity_comparison() does for
+    the velocity.
+
+    Parameters
+    ----------
+    traj : dict
+        The output of plan_trajectory().
+
+    Returns
+    -------
+    a_joint    : (N, 6) np.ndarray  -- joint angular acceleration (rad/s^2)
+    a_cart_mag : (N,)   np.ndarray  -- end-effector linear |a(t)| (m/s^2)
+    """
+    t   = traj['t']
+    pos = traj['cartesian'][:, :3]   # (N, 3)
+    q   = traj['joints']             # (N, 6)
+
+    def central_diff(y):
+        """Central differences in time, forward/backward at the boundaries."""
+        d = np.zeros_like(y)
+        d[1:-1] = (y[2:] - y[:-2]) / (t[2:] - t[:-2])[:, None]
+        d[0]    = (y[1]  - y[0])   / (t[1]  - t[0])
+        d[-1]   = (y[-1] - y[-2])  / (t[-1] - t[-2])
+        return d
+
+    # Joint space: differentiate twice (q -> q_dot -> q_ddot)
+    qdot  = central_diff(q)
+    qddot = central_diff(qdot)
+
+    # Work space: differentiate the numerical velocity of the EE position
+    v_num = central_diff(pos)
+    a_num = central_diff(v_num)
+
+    return qddot, np.linalg.norm(a_num, axis=1)
+
+
+# ============================================================================
 # Plotting
 # ============================================================================
 def plot_trajectory(traj, save_dir=None, show=True):
     """
-    Produce the three figures required for section 4.1.9:
+    Produce the four figures required for section 4.1.9:
       * 3D plot of the Cartesian path (4.1.9.3)
       * Speed |v(t)| vs time (4.1.9.4)
       * Joint angles vs time (preview for 4.1.10)
+      * Joint and Cartesian acceleration vs time
     """
     t    = traj['t']
     cart = traj['cartesian']
@@ -305,6 +362,25 @@ def plot_trajectory(traj, save_dir=None, show=True):
     ax3.grid(True, alpha=0.3)
     ax3.legend(loc='best', ncol=2)
 
+    # ---------- Figure 4: accelerations (joint-space + Cartesian) ----------
+    a_joint, a_cart_mag = compute_acceleration(traj)
+    fig4, axes4 = plt.subplots(2, 1, figsize=(9, 8), sharex=True)
+
+    for i in range(6):
+        axes4[0].plot(t, a_joint[:, i], linewidth=1.5, label=joint_labels[i])
+    axes4[0].set_ylabel('joint accel. (rad/s²)')
+    axes4[0].set_title('Joint angular acceleration along the trajectory')
+    axes4[0].grid(True, alpha=0.3)
+    axes4[0].legend(loc='best', ncol=2)
+
+    axes4[1].plot(t, a_cart_mag, '-', color='darkorange', linewidth=2)
+    axes4[1].fill_between(t, 0, a_cart_mag, color='darkorange', alpha=0.15)
+    axes4[1].set_ylabel('|a(t)| (m/s²)')
+    axes4[1].set_xlabel('time (s)')
+    axes4[1].set_title('End-effector linear acceleration (world frame)')
+    axes4[1].grid(True, alpha=0.3)
+    fig4.tight_layout()
+
     if save_dir is not None:
         os.makedirs(save_dir, exist_ok=True)
         fig1.savefig(os.path.join(save_dir, 'trajectory_cartesian_path.png'),
@@ -312,6 +388,8 @@ def plot_trajectory(traj, save_dir=None, show=True):
         fig2.savefig(os.path.join(save_dir, 'trajectory_speed_profile.png'),
                      dpi=150, bbox_inches='tight')
         fig3.savefig(os.path.join(save_dir, 'trajectory_joint_angles.png'),
+                     dpi=150, bbox_inches='tight')
+        fig4.savefig(os.path.join(save_dir, 'trajectory_acceleration.png'),
                      dpi=150, bbox_inches='tight')
         print(f"  Plots saved to {save_dir}/")
 
@@ -352,7 +430,7 @@ def main():
 
     # Extract (x, y, z, roll, pitch, yaw). We use a helper to keep the
     # Euler-angle convention consistent with rpy_to_rotation().
-    from kinematics import rotation_to_rpy
+    from ur5_project.kinematics import rotation_to_rpy
     rpy_start = rotation_to_rpy(T_start[:3, :3])
     rpy_end   = rotation_to_rpy(T_end[:3, :3])
 

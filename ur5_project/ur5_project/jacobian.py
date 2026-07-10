@@ -185,7 +185,7 @@ def numerical_jacobian(joint_angles, eps=1e-7):
 # ============================================================================
 # Sanity check + analytical-vs-numerical validation
 # ============================================================================
-if __name__ == "__main__":
+def main():
     np.set_printoptions(precision=4, suppress=True, linewidth=140)
 
     print("=" * 78)
@@ -250,9 +250,13 @@ if __name__ == "__main__":
     # Quick hand-check: at the horizontal-reach pose the EE is at radius r
     # in the horizontal plane, so the shoulder_lift torque should be
     # approximately m * g * r (modulo the vertical offset to the joint axis).
-    from kinematics import forward_kinematics as fk
+    from ur5_project.kinematics import forward_kinematics as fk
     T_demo = fk(q_demo)
     r_horiz = np.linalg.norm(T_demo[:2, 3])
     print(f"\n  Hand estimate of |shoulder_lift| torque: "
           f"m*g*r_horiz = {mass*9.81*r_horiz:.2f} Nm")
     print(f"  Computed |shoulder_lift| torque:         {abs(tau[1]):.2f} Nm")
+
+
+if __name__ == "__main__":
+    main()

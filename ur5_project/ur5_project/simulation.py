@@ -37,7 +37,7 @@ from pathlib import Path
 
 from ur5_project.kinematics import forward_kinematics, T_BASE_CORRECTION
 from ur5_project.jacobian import compute_jacobian, compute_statics
-from ur5_project.trajectory import plan_trajectory
+from ur5_project.trajectory import plan_trajectory, compute_acceleration
 
 # This file lives at <REPO>/ur5_project/ur5_project/simulation.py
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -313,6 +313,47 @@ def plot_torques(traj, payload_mass, save_path=None):
 
 
 # ============================================================================
+# Plots: acceleration profiles (joint-space + Cartesian)
+# ============================================================================
+def plot_acceleration(traj, save_path=None):
+    """
+    Plot the acceleration of the motion in both spaces vs time:
+      * Joint-space: angular acceleration of all six joints (rad/s^2)
+      * Work-space:  end-effector linear acceleration magnitude |a(t)| (m/s^2)
+
+    Both are numerical central-difference derivatives (see
+    trajectory.compute_acceleration), so the curves expose the finite-
+    difference noise inherent in twice-differentiating a sampled path,
+    just like plot_velocity_comparison() does for the velocity.
+    """
+    t = traj['t']
+    a_joint, a_cart_mag = compute_acceleration(traj)
+    labels = ['shoulder_pan', 'shoulder_lift', 'elbow',
+              'wrist_1', 'wrist_2', 'wrist_3']
+
+    fig, axes = plt.subplots(2, 1, figsize=(9, 8), sharex=True)
+
+    for i in range(6):
+        axes[0].plot(t, a_joint[:, i], linewidth=1.5, label=labels[i])
+    axes[0].set_ylabel('joint accel. (rad/s²)')
+    axes[0].set_title('Joint angular acceleration along the trajectory')
+    axes[0].grid(True, alpha=0.3)
+    axes[0].legend(loc='best', ncol=2)
+
+    axes[1].plot(t, a_cart_mag, '-', color='darkorange', linewidth=2)
+    axes[1].fill_between(t, 0, a_cart_mag, color='darkorange', alpha=0.15)
+    axes[1].set_ylabel('|a(t)| (m/s²)')
+    axes[1].set_xlabel('time (s)')
+    axes[1].set_title('End-effector linear acceleration (world frame)')
+    axes[1].grid(True, alpha=0.3)
+
+    fig.tight_layout()
+    if save_path:
+        fig.savefig(save_path, dpi=150, bbox_inches='tight')
+    return fig
+
+
+# ============================================================================
 # Animation: MP4 of the robot moving along the trajectory (4.1.10.2.1)
 # ============================================================================
 def animate_motion(traj, save_path, fps=30, slowdown=3.0):
@@ -447,7 +488,7 @@ def main():
     q_end   = np.array([np.pi/6,  -np.pi/4, -np.pi/4, -np.pi/4, np.pi/2, np.pi/6])
 
     # Convert to Cartesian start/end via FK + RPY extraction
-    from kinematics import rotation_to_rpy
+    from ur5_project.kinematics import rotation_to_rpy
     T0 = forward_kinematics(q_start); T1 = forward_kinematics(q_end)
     start_pose = np.concatenate([T0[:3, 3], rotation_to_rpy(T0[:3, :3])])
     end_pose   = np.concatenate([T1[:3, 3], rotation_to_rpy(T1[:3, :3])])
@@ -481,6 +522,8 @@ def main():
         save_path=os.path.join(args.save, 'sim_velocity_compare.png'))
     plot_torques(traj, args.payload,
         save_path=os.path.join(args.save, 'sim_torques.png'))
+    plot_acceleration(traj,
+        save_path=os.path.join(args.save, 'sim_acceleration.png'))
     print(f"  Plots saved to {args.save}/")
 
     # ----- Quick numerical summary -----
