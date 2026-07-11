@@ -23,7 +23,7 @@ Workflow
    timestamped subdirectory of docs/report_assets/ (so multiple test
    runs don't overwrite each other).
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 

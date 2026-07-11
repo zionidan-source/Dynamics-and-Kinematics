@@ -31,7 +31,7 @@ where F_ext = [0, 0, +M*g, 0, 0, 0]^T is the wrench the *motors* must
 apply at the end-effector to support the load against gravity.
 Equivalently, gravity applies -F_ext to the EE and the motors balance it.
 
-Author: Daniel & Itay
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 

@@ -6,7 +6,7 @@ Forward kinematics for the UR5 robotic arm using Denavit-Hartenberg parameters.
 This module is the foundation for the rest of the project. Everything else
 (workspace, IK, Jacobian, statics, trajectory) builds on the FK defined here.
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 

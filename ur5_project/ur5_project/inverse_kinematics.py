@@ -24,7 +24,7 @@ The 8 solutions correspond to the combinations of:
 For unreachable poses or singular configurations, fewer solutions may be
 returned.
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 
@@ -185,13 +185,15 @@ def inverse_kinematics(T_target):
     # Filter out spurious solutions: at near-singular configurations the
     # algorithm can return joint angles that don't actually reach the target.
     # We re-run FK on each solution and keep only those with low position
-    # error (< 1 mm). Numerically valid solutions are all at < 1e-9 mm.
+    # error (< 1 um). Numerically valid solutions are all at < 1e-9 mm, so a
+    # 1 um gate cleanly rejects near-singular spurious branches (accurate only
+    # to ~0.1-1 mm) without ever discarding a genuine solution.
     if len(solutions) > 0:
         good = []
         for sol in solutions:
             T_check = forward_kinematics(sol)
             err = np.linalg.norm(T_check[:3, 3] - T_target[:3, 3])
-            if err < 1e-3:   # 1 mm
+            if err < 1e-6:   # 1 um
                 good.append(sol)
         solutions = np.array(good) if good else np.empty((0, 6))
 

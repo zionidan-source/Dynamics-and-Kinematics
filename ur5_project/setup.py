@@ -13,7 +13,7 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Daniel and Itai',
+    maintainer='Daniel, Itai and Ido',
     maintainer_email='zionidan@post.bgu.ac.il',
     description='UR5 kinematics, dynamics, and trajectory simulation '
                 '(BGU course 362-1-4231 final project)',

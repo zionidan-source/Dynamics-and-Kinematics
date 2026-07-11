@@ -31,7 +31,7 @@ The arm will:
 
 After the motion completes, stop the recording and the script exits.
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 
