@@ -22,7 +22,7 @@ For each Cartesian waypoint we also solve inverse kinematics to obtain the
 corresponding joint-space trajectory, choosing the IK branch closest to the
 previous waypoint's joints for continuity.
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 

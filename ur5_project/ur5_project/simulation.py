@@ -22,7 +22,7 @@ Design note (deliberate decoupling):
     as the dict keys 't', 'cartesian', 'joints', 'speed', 's' remain
     consistent.
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 

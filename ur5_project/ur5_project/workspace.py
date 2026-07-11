@@ -22,7 +22,7 @@ Usage:
   ros2 run ur5_project workspace --density fine   # slow but smooth (~730k points)
   ros2 run ur5_project workspace --density ultra  # report-grade (~3.4M points)
 
-Author: Daniel
+Author: Daniel, Itai & Ido
 Course: Kinematics and Dynamics of Robots, Ben-Gurion University, 2026
 """
 
