@@ -167,8 +167,21 @@ This requires Gazebo to be already running.
 ros2 launch ur_simulation_gz ur_sim_control.launch.py ur_type:=ur5
 ```
 
-Wait until you see `Configured and activated joint_trajectory_controller` in
-the log and the arm is visible in Gazebo.
+Wait until you see `Configured and activated scaled_joint_trajectory_controller`
+in the log and the arm is visible in Gazebo.
+
+> **Controller requirement.** Both scripts (`verify_fk` and `simulation_gazebo`)
+> publish to `scaled_joint_trajectory_controller`, so that controller must be the
+> **active** one. This is the default of the `ur_simulation_gz` package, but
+> after a fresh pull it is worth confirming with:
+>
+> ```bash
+> ros2 control list_controllers
+> ```
+>
+> The line for `scaled_joint_trajectory_controller` must show `active`. If it does
+> not, the arm will not move (or will stop after the first pose) — see
+> [Troubleshooting](#troubleshooting).
 
 **Terminal 2** — run the validation:
 
@@ -408,10 +421,49 @@ The requested pose is outside the workspace, or on a singularity. Use
 `workspace` to visualize the reachable set, and `test_trajectory` to
 validate a candidate start/end pair before running `simulation_gazebo`.
 
-**Gazebo opens but the arm doesn't move when `simulation_gazebo` runs**
-The trajectory controller probably hasn't loaded yet. Wait until you see
-`Configured and activated joint_trajectory_controller` in the Gazebo
-terminal's log before launching anything else.
+**The arm does not move at all, or moves to the first pose and then freezes**
+Both `verify_fk` and `simulation_gazebo` publish to
+`scaled_joint_trajectory_controller`, so that controller must be the **active**
+one. Check with:
+
+```bash
+ros2 control list_controllers
+```
+
+If `scaled_joint_trajectory_controller` is not listed as `active` (a fresh clone
+of a teammate may have `joint_trajectory_controller` active instead), you get one
+of two symptoms:
+
+* **`verify_fk`: the arm never moves** — the commands go to an inactive
+  controller and are silently dropped.
+* **`simulation_gazebo`: the arm reaches the start pose then freezes** — the
+  plain `joint_trajectory_controller` rejects the streamed trajectory with
+  `Velocity of last trajectory point ... is not zero`, a check the scaled
+  controller does not enforce.
+
+Fixes (either one):
+
+1. **Update the simulation package** so its defaults match — from the workspace
+   `src/`:
+
+   ```bash
+   cd Universal_Robots_ROS2_GZ_Simulation && git pull   # branch: ros2
+   cd ../.. && colcon build && source install/setup.bash
+   ```
+
+   The up-to-date `ur_simulation_gz` defaults to `scaled_joint_trajectory_controller`
+   and ships `speed_scaling_interface_name: ""` (so the scaled controller runs at
+   full speed in Gazebo instead of at zero).
+
+2. **Force the controller at launch:**
+
+   ```bash
+   ros2 launch ur_simulation_gz ur_sim_control.launch.py ur_type:=ur5 \
+     initial_joint_controller:=scaled_joint_trajectory_controller
+   ```
+
+Wait until you see `Configured and activated scaled_joint_trajectory_controller`
+in the Gazebo terminal's log before launching anything else.
 
 **MP4 rendering fails**
 Install ffmpeg: `sudo apt install ffmpeg`.
